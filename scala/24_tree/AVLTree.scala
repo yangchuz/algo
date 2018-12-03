@@ -25,6 +25,8 @@ class AVLTree[E <: Ordered[E]]{
       case None => root = Some(node); _size += 1;
       case Some(r) => add(r, node)
     }
+
+    root = Some(checkBalance(root.get))
   }
 
   private def checkBalance(node: Node): Node ={
