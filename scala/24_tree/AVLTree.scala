@@ -1,8 +1,10 @@
 object AVLTree extends App {
 
   val myTree = new AVLTree[BigInt]
-  for(i <- 1 to 10){
-    myTree.add((math.random() * 100).toInt)
+  for(i <- (1 to 30).reverse){
+    val k = (math.random() * 100).toInt
+    myTree.add(k)
+    //    myTree.add(i)
   }
   println(myTree.height)
   println(myTree.size)
@@ -20,28 +22,22 @@ class AVLTree[E <: Ordered[E]]{
   def add(d: E): Unit = {
     val node = new Node(d)
     root match {
-      case None => root = Some(node)
+      case None => root = Some(node); _size += 1;
       case Some(r) => add(r, node)
     }
-
-    checkBalance(node)
   }
 
-  private def checkBalance(node: Node): Unit ={
+  private def checkBalance(node: Node): Node ={
     if(math.abs(height(node.left) - height(node.right)) > 1) {
       rebalance(node)
-    }
-
-    node.parent match {
-      case None =>
-      case Some(p) => checkBalance(p)
+    } else {
+      node
     }
   }
 
 
 
-  private def rebalance(node: Node): Unit ={
-    val parent = node.parent
+  private def rebalance(node: Node): Node ={
     val newNode = if(height(node.left) > height(node.right)){
       val l = node.left.get
       if(height(l.left) > height(l.right)){
@@ -57,12 +53,7 @@ class AVLTree[E <: Ordered[E]]{
         rotateRightLeft(node)
       }
     }
-
-    parent match {
-      case None => root = Some(newNode)
-      case Some(p) if isLeftChild(p, node) => p.left = Some(newNode)
-      case Some(p) if isRightChild(p, node) => p.right = Some(newNode)
-    }
+    newNode
   }
 
   private def rotateLeft(node: Node): Node = {
@@ -89,33 +80,15 @@ class AVLTree[E <: Ordered[E]]{
     rotateLeft(node)
   }
 
-
-  private def isLeftChild(parent: Node, child: Node): Boolean = {
-    parent.left match {
-      case Some(l) if l.data == child.data => true
-      case _ => false
-    }
-  }
-
-
-  private def isRightChild(parent: Node, child: Node): Boolean = {
-    parent.right match {
-      case Some(r) if r.data == child.data => true
-      case _ => false
-    }
-  }
-
-  private def add(parent: Node, child: Node): Unit ={
+  private def add(parent: Node, child: Node): Unit = {
     if(child.data >= parent.data){
-      val r = parent.right
-      r match {
-        case Some(p) => add(p, child)
+      parent.right match {
+        case Some(p) => add(p, child); parent.right = Some(checkBalance(p))
         case None => parent.right = Some(child); _size += 1
       }
     }else{
-      val l = parent.left
-      l match {
-        case Some(p) => add(p, child)
+      parent.left match {
+        case Some(p) => add(p, child); parent.left = Some(checkBalance(p))
         case None => parent.left = Some(child); _size += 1
       }
     }
@@ -140,7 +113,6 @@ class AVLTree[E <: Ordered[E]]{
   }
 
   class Node(val data: E){
-    var parent: Option[Node] = None
     var left: Option[Node] = None
     var right: Option[Node] = None
 
